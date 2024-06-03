@@ -1,5 +1,8 @@
 from rest_framework import serializers
 from .models import *
+from django.core.validators import MaxLengthValidator, MinLengthValidator
+from rest_framework.serializers import ValidationError
+from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 
 # 사용할 필드 이름은 꼭 모델에서 사용하는 필드 이름과 일치!! 
 
@@ -26,11 +29,45 @@ from .models import *
         
     #     return instance
     
+def overview_validator(value):
+    if value > 300:
+        raise ValidationError('소개 문구는 최대 300자 이하로 작성해야 합니다.')
+    elif value < 10:
+        return ValidationError('소개 문구는 최소 10자 이상으로 작성해야 합니다.')
+    return value
+    
+
 # ModelSerializer 로 구현하기 (Django의 ModelForm 과 유사)
 class MovieSerializer(serializers.ModelSerializer):
     # 이렇게 해도 상관 없음
     # name = serializers.CharField(read_only = True)
     # overview = serializers.CharField(write_only = True)
+    
+    # 길이 제한 유효성 검사
+    # overview = serializers.CharField(validators=[MinLengthValidator(limit_value=10), MaxLengthValidator(limit_value=300)])
+    
+    # 유효성 검사 함수 만들어서 사용
+    # overview = serializers.CharField(validator=[overview_validator])
+    
+    # 유일성 여부 확인
+    # name = serializers.CharField(validators=[UniqueValidator(
+    #     queryset=Movie.objects.all(), # 필수 옵션
+    #     message='이미 존재하는 영화 이름입니다.'
+    # )])
+    
+    # validate_[필드명] () 힘수
+    # def validate_overview(self, value):
+    #     if 10 <= len(value) and len(value) <= 300:
+    #         return value
+    #     raise ValidationError('영화 소개는 10자 이상, 300자 이하로 작성해주세요.')
+    
+    # validate() 함수
+    def validate(self, attrs):
+        if 10 > len(attrs['overview']) or len(attrs['overview']) > 300:
+            raise ValidationError('영화 소개는 10자 이상, 300자 이하로 작성해주세요.')
+        if len(attrs['name']) > 50:
+            raise ValidationError('영화 이름은 50자 이하로 작성해주세요.')
+        return attrs
     
     class Meta:
         model = Movie
@@ -44,6 +81,13 @@ class MovieSerializer(serializers.ModelSerializer):
         # extra_kwargs = {
             # 'overview' : {'write_only' : True},
         # }
+        
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Movie.objects.all(),
+                fields=['name', 'overview'],
+            )
+        ]
         
 # class ActorSerializer(serializers.Serializer):
 #     id = serializers.IntegerField(read_only=True)
