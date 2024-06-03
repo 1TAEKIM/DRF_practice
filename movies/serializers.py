@@ -73,8 +73,8 @@ class MovieSerializer(serializers.ModelSerializer):
     # 이것은 연결된 모델의 pk를 이용해 관계를 표현해줌
     # movie_reviews = serializers.PrimaryKeyRelatedField(source='reviews', many=True, read_only=True)
     
-    # StringRelatedField 필드는 그 자체로 조회만 가능한 필드이기 때문에 read_only 옵션을 추가 안해도 됨
-    reviews = serializers.StringRelatedField(many=True)
+    # StringRelatedField 필드는 그 자체로 조회만 가능한 필드이기 때문에 read_only 옵션을 추가 반드시 해야됨!!!!!
+    reviews = serializers.StringRelatedField(many=True, read_only=True)
     actors = serializers.StringRelatedField(many=True, read_only=True)
     class Meta:
         model = Movie
