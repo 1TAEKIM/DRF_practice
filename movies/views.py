@@ -3,9 +3,16 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.generics import get_object_or_404, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
 
 from .models import Movie, Actor, Review
 from .serializers import MovieSerializer, ActorSerializer, ReviewSerializer
+
+
+# 개별 페이지네이션 설정
+class MoviepageNumberPagination(PageNumberPagination):
+    page_size = 2
+
 
 # @api_view(['GET', 'POST'])
 # def movie_list(request):
@@ -52,6 +59,8 @@ class MovieList(ListCreateAPIView):
     queryset = Movie.objects.all()
     # serializer_class는 조회와 생성 시 사용할 시리얼라이저 설정하는 옵션
     serializer_class = MovieSerializer
+    # 페이지네이션 설정 추가 (이렇게 넣어 주면 기존의 전역 페이지네이션 설정 값은 무시)
+    pagination_class = MoviepageNumberPagination
 
 
 # GET (특정한 영화 데이터 조회), PATCH (특정한 영화 데이터 수정), DELETE (특정한 영화 데이터 삭제)
@@ -239,8 +248,3 @@ class ReviewList(ListCreateAPIView):
     def perform_create(self, serializer):
         movie = get_object_or_404(Movie, pk=self.kwargs.get('pk'))
         serializer.save(movie=movie)
-
-
-
-
-
