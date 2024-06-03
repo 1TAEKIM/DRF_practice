@@ -120,6 +120,12 @@ class MovieDetail(RetrieveUpdateDestroyAPIView):
 
 
 
+# 개별 페이지네이션 설정
+class ActorpageNumberPagination(PageNumberPagination):
+    page_size = 5
+
+
+
 # @api_view(['GET', 'POST'])
 # def actor_list(request):
 #     if request.method == 'GET':
@@ -156,7 +162,7 @@ class MovieDetail(RetrieveUpdateDestroyAPIView):
 class ActorList(ListCreateAPIView):
     queryset = Actor.objects.all()
     serializer_class = ActorSerializer
-    
+    pagination_class = ActorpageNumberPagination
 
 
 

@@ -39,9 +39,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders"
 ]
 
 MIDDLEWARE = [
+     # 최상단에 작성
+    'corsheaders.middleware.CorsMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -50,6 +53,12 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# 이 목록에 API 요청을 허용하고 싶은 출처를 입려
+CORS_ALLOWED_ORIGINS = [ 
+    'http://localhost:3000', 
+]
+
 
 ROOT_URLCONF = "movie_api.urls"
 
