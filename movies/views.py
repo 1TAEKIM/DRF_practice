@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.generics import get_object_or_404
 
-from .models import Movie, Actor
-from .serializers import MovieSerializer, ActorSerializer
+from .models import Movie, Actor, Review
+from .serializers import MovieSerializer, ActorSerializer, ReviewSerializer
 
 @api_view(['GET', 'POST'])
 def movie_list(request):
@@ -89,6 +89,30 @@ def actor_detail(request, pk):
         actor.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+
+@api_view(['GET', 'POST'])
+def review_list(request, pk):
+    movie = get_object_or_404(Movie, pk=pk)
+    
+    if request.method == 'GET':
+        # movie=movie 를 전달하여 영화 ID 기준으로 작성된 리뷰 데이터를 가지고 올 수 있음
+        reviews = Review.objects.filter(movie=movie)
+        serializer = ReviewSerializer(reviews, many=True)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    elif request.method == 'POST':
+        serializer = ReviewSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            # ReviewSerializer 에서 영화 데이터를 직접 입력 받지 않고 URL에서 pk 값을 기준으로
+            # 입력 받기 때문에 save()에 movie 를 전달한 것
+            serializer.save(movie=movie)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
 
     
 

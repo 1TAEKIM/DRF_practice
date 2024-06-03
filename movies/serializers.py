@@ -69,9 +69,20 @@ class MovieSerializer(serializers.ModelSerializer):
             raise ValidationError('영화 이름은 50자 이하로 작성해주세요.')
         return attrs
     
+    # 모델들의 필드 이름을 수정하는 게 어려운 상황에 PrimaryKeyRelatedField 사용
+    # 이것은 연결된 모델의 pk를 이용해 관계를 표현해줌
+    # movie_reviews = serializers.PrimaryKeyRelatedField(source='reviews', many=True, read_only=True)
+    
+    # StringRelatedField 필드는 그 자체로 조회만 가능한 필드이기 때문에 read_only 옵션을 추가 안해도 됨
+    reviews = serializers.StringRelatedField(many=True)
+    actors = serializers.StringRelatedField(many=True, read_only=True)
     class Meta:
         model = Movie
-        fields = ['id', 'name', 'opening_date', 'running_time', 'overview']
+        # reviews는 위에 변수명에 맞게 계속 수정됨
+        fields = ['id', 'name', 'reviews', 'actors', 'opening_date', 'running_time', 'overview']
+        # ModelSerializer를 사용하기 때문에 이렇게 추가해주면 역관계 필드를 쉽게 사용할 수 있음
+        # 영화 데이터 생성(POST)시 영화에 속하는 리뷰를 함께 생성하는 것은 API 기획 의도와 맞지 않기 때문에 read_only 옵션 추가
+        read_only_fields = ['reviews']
         
         # fields = '__all__' # 모델에 존재하는 모든 필드 사용
         # exclude = ['overview'] # exclude 안에 있는 필드를 제외하고 사용
@@ -104,5 +115,20 @@ class MovieSerializer(serializers.ModelSerializer):
 #         instance.birth_date = validated_data.get('birth_date', instance.birth_date)
     
 class ActorSerializer(serializers.ModelSerializer):
-    model = Actor
-    fields = ['id', 'name', 'gender', 'birth_date']
+    movies = MovieSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Actor
+        fields = ['id', 'name', 'gender', 'birth_date', 'movies']
+    
+    
+class ReviewSerializer(serializers.ModelSerializer):
+    movie = serializers.StringRelatedField()
+    
+    class Meta:
+        model = Review
+        # movie와 같이 관계를 표현하는 필드를 직렬화 할 때는 pk, 즉 id값이 사용
+        fields = ['id', 'movie', 'username', 'star', 'comment', 'created']
+        extra_kwargs = {
+            'movie' : {'read_only' : True} # 리뷰를 생성할 때는 영화 정보(id)를 입력받지 않고 URL로 받아올 것이기 때문
+        }
