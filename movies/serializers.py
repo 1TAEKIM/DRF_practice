@@ -15,6 +15,16 @@ class MovieSerializer(serializers.Serializer):
     def create(self, validated_data):
         # 언패킹(**) : 리스트나 딕셔너리 형태로 감싸져 있는 값을 풀어서 사용하는 것
         return Movie.objects.create(**validated_data)
+    
+    def update(self, instance, validated_data):
+        # get() 함수로 validated_data에 값이 존재한다면 수정 요청한 값을, 없다면 instance.name을 넣고 데이터 수정
+        instance.name = validated_data.get('name', instance.name)
+        instance.opening_date = validated_data.get('opening_date', instance.opening_date)
+        instance.running_time = validated_data.get('running_time', instance.running_time)
+        instance.overview = validated_data.get('overview', instance.overview)
+        instance.save()
+        
+        return instance
 
 
 class ActorSerializer(serializers.Serializer):
@@ -25,4 +35,9 @@ class ActorSerializer(serializers.Serializer):
     
     def create(self, validated_data):
         return Actor.objects.create(**validated_data)
+    
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
+        instance.gender = validated_data.get('gender', instance.gender)
+        instance.birth_date = validated_data.get('birth_date', instance.birth_date)
     
